@@ -1,0 +1,163 @@
+    <!DOCTYPE html>
+<html>
+    
+    <head>
+        <title>Meteo</title>
+    </head>
+    <body>
+            <h1>Meteo</h1>
+            <div id="recherche">
+                <label>Entrer nom de ville : </label>
+                <input id="search" />
+                <input type="button" value="Rechercher" id="Rechercher">
+            </div>
+            <div id="resultat">
+                <div id="resultatMeteo">
+                </div>
+                <div id="divJour">
+                </div>
+            </div>
+    </body>
+    <style>
+
+        h1,h2,h3{
+            text-align: center;
+        }
+        #recherche{
+            margin: 0  auto  0 auto;
+            width: 400px;
+        }
+        #divMeteo{
+            display: flex;
+            justify-content: center;
+            margin: 0 auto; 
+        }
+        #divMeteo div{
+            margin-right: 2.5%;
+        }
+        
+        #divMeteoJour{
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            background-color: bisque;
+        }
+        #divMeteoJour div{
+           margin-right: 2.5%;
+        }
+        #resultat{
+            display: block;
+            width: 100%;
+        }
+    </style>
+    <script>
+        var tableauDetail = {};
+        var tableauJours = {};
+        
+        let  divCleaner = function(NomDiv){
+            let resultMeteo = document.getElementById(NomDiv);
+            while (resultMeteo.firstChild){
+                resultMeteo.removeChild(resultMeteo.firstChild);
+            }
+        }
+        
+        let clickDiv = function(){
+            divCleaner("divJour");
+            let divJour = document.getElementById("divJour");
+            let divMeteoJour = document.createElement("div");
+            divMeteoJour.id = "divMeteoJour";
+            let tabHeure = ['0H00','1H00','2H00','3H00','4H00','5H00','6H00','7H00','8H00','9H00','10H00','11H00','12H00','13H00','14H00','15H00','16H00','17H00','18H00','19H00','20H00','21H00','22H00','23H00'];
+            
+            let jour = document.createElement("h3");
+            jour.innerHTML = tableauJours[this.id];
+            divJour.appendChild(jour);
+            
+            
+            for(let i = 0;i< tabHeure.length;i+=1){
+                let divHeure = document.createElement("div");
+                divHeure.id= "h"+i;
+                divHeure.class = "horaire";
+                let Img = document.createElement("img");
+                Img.src = tableauDetail[this.id][tabHeure[i]].ICON;
+                let condMeteo = document.createElement("h4");
+                condMeteo.innerHTML = tableauDetail[this.id][tabHeure[i]].CONDITION;
+                let heure = document.createElement("h5");
+                heure.innerHTML = tabHeure[i];
+                divHeure.appendChild(Img);
+                divHeure.appendChild(condMeteo);
+                divHeure.appendChild(heure);
+                divMeteoJour.appendChild(divHeure);
+            }
+            divJour.appendChild(divMeteoJour);
+            
+        }
+               
+
+        let MonBouttonRecher = document.getElementById("Rechercher");
+        MonBouttonRecher.addEventListener('click',function(){
+            let maRecherche =document.getElementById("search").value;
+            fetch('https://www.prevision-meteo.ch/services/json/'+maRecherche)
+            .then(function(response) { // fonction exécutée si le fetch fonctionne
+                return response.json() ;
+
+            })
+
+            .then(function(data) { // fonction exécutée en cas de succès de la conversion en json
+                divCleaner("resultatMeteo");
+                divCleaner("divJour");
+                console.log(data);
+                let resultMeteo = document.getElementById("resultatMeteo");
+                if (data.errors === undefined){
+                                        
+                    let nomVille = document.createElement("h2");
+                    //nomVille.style.textAlign = "center";
+                    nomVille.innerHTML = data.city_info.name +" "+data.city_info.country;
+                    resultMeteo.appendChild(nomVille);
+                    
+                    let divMeteo = document.createElement("div");
+                    divMeteo.id = "divMeteo";
+                    
+                    let nomJourModele = "fcst_day_";
+                    let nomJour;
+                    for(let i = 0;i<5;i+=1){
+                        nomJour = nomJourModele+i;
+                        let divJour = document.createElement("div");
+                        divJour.id = i;
+                        divJour.class = "fcst_day_";
+                        tableauDetail[i] = data[nomJour].hourly_data;
+                        let image = document.createElement("img");
+                        image.src = data[nomJour].icon_big;
+                        let conditionMeteo = document.createElement("h3");
+                        conditionMeteo.innerHTML = data[nomJour].condition;
+                        let date = document.createElement("h4");
+                        date.innerHTML = data[nomJour].day_long +" "+ data[nomJour].date;
+                        tableauJours[i] = date.innerHTML;
+                        divJour.addEventListener("click",clickDiv);
+                        divJour.appendChild(image);
+                        divJour.appendChild(conditionMeteo);
+                        divJour.appendChild(date);
+                        divMeteo.appendChild(divJour);
+                    }
+                    
+                    
+                    resultMeteo.appendChild(divMeteo);
+                }else{
+                    let erreur = document.createElement("h3");
+                    erreur.innerHTML = "une erreur est survenue, nous n'avons pas pu retrouver votre ville";
+                    let message = document.createElement("p");
+                    message.innerHTML = "il se peut que le nom de la ville soit similaire avec d'autres dans ce cas met le nom de votre ville suivi d'un tiré (-) et de son département.\n Si le nom de la ville saisi possède un déterminant dans son nom supprimé le.";
+                    resultMeteo.appendChild(erreur);
+                    resultMeteo.appendChild(message);
+                }
+            })
+
+            .catch(function(err) { // fonction exécutée en cas d'échec
+              console.log(err.message);
+                    
+            });
+        });
+        
+        
+
+    </script>
+</html>
