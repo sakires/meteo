@@ -38,7 +38,7 @@
         
         #divMeteoJour{
             display: flex;
-            flex-direction: column;
+            flex-direction: row;
             flex-wrap: wrap;
             background-color: bisque;
         }
@@ -48,6 +48,17 @@
         #resultat{
             display: block;
             width: 100%;
+        }
+        
+        
+        @media(max-width 500px){
+            #divMeteoJour{
+                flex-direction: column;
+            }
+            #divMeteo{
+                flex-direction: column;
+            }
+            
         }
     </style>
     <script>
